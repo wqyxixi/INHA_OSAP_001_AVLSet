@@ -1,158 +1,199 @@
 #include "OSAP_001_AVLSet.h"
+#include <algorithm>
 #include <iostream>
 
-int AVLTree::height(AVLNode *node)
-{
-    if (node == nullptr)
+// Node 类的构造函数和析构函数
+Node::Node(int val) : key(val), left(nullptr), right(nullptr), height(1) {}
+
+Node::~Node() {
+    // 如果需要手动管理内存，这里应该释放左右子节点
+}
+
+// Node 类的 getter 和 setter 方法
+int Node::getKey() const {
+    return key;
+}
+
+void Node::setKey(int val) {
+    key = val;
+}
+
+Node* Node::getLeft() const {
+    return left;
+}
+
+void Node::setLeft(Node* leftChild) {
+    left = leftChild;
+}
+
+Node* Node::getRight() const {
+    return right;
+}
+
+void Node::setRight(Node* rightChild) {
+    right = rightChild;
+}
+
+int Node::getHeight() const {
+    return height;
+}
+
+void Node::setHeight(int h) {
+    height = h;
+}
+
+// AVLTree 类的构造函数和析构函数
+AVLTree::AVLTree() : root(nullptr), tree_size(0) {}
+
+AVLTree::~AVLTree() {
+    clear(root);
+}
+
+// AVLTree 类的私有辅助方法
+int AVLTree::getHeight(Node* N) const {
+    if (N == nullptr)
         return 0;
-    return node->height;
+    return N->getHeight();
 }
 
-int AVLTree::balanceFactor(AVLNode *node)
-{
-    if (node == nullptr)
-        return 0;
-    return height(node->left) - height(node->right);
+int AVLTree::max(int a, int b) const {
+    return (a > b) ? a : b;
 }
 
-void AVLTree::updateHeight(AVLNode *node)
-{
-    node->height = std::max(height(node->left), height(node->right)) + 1;
-}
+Node* AVLTree::rightRotate(Node* y) {
+    Node* x = y->getLeft();
+    Node* T2 = x->getRight();
 
-AVLTree::AVLNode *AVLTree::rightRotate(AVLNode *y)
-{
-    AVLNode *x = y->left;
-    AVLNode *T2 = x->right;
+    x->setRight(y);
+    y->setLeft(T2);
 
-    x->right = y;
-    y->left = T2;
-
-    updateHeight(y);
-    updateHeight(x);
+    y->setHeight(max(getHeight(y->getLeft()), getHeight(y->getRight())) + 1);
+    x->setHeight(max(getHeight(x->getLeft()), getHeight(x->getRight())) + 1);
 
     return x;
 }
 
-AVLTree::AVLNode *AVLTree::leftRotate(AVLNode *x)
-{
-    AVLNode *y = x->right;
-    AVLNode *T2 = y->left;
+Node* AVLTree::leftRotate(Node* x) {
+    Node* y = x->getRight();
+    Node* T2 = y->getLeft();
 
-    y->left = x;
-    x->right = T2;
+    y->setLeft(x);
+    x->setRight(T2);
 
-    updateHeight(x);
-    updateHeight(y);
+    x->setHeight(max(getHeight(x->getLeft()), getHeight(x->getRight())) + 1);
+    y->setHeight(max(getHeight(y->getLeft()), getHeight(y->getRight())) + 1);
 
     return y;
 }
 
-AVLTree::AVLNode *AVLTree::insertNode(AVLNode *node, int key)
-{
-    if (node == nullptr)
-        return new AVLNode(key);
+int AVLTree::getBalance(Node* N) const {
+    if (N == nullptr)
+        return 0;
+    return getHeight(N->getLeft()) - getHeight(N->getRight());
+}
 
-    if (key < node->key)
-        node->left = insertNode(node->left, key);
-    else if (key > node->key)
-        node->right = insertNode(node->right, key);
-    else
-        return node; // 不允许重复键
+Node* AVLTree::insert(Node* node, int key, int& depth) {
+    if (node == nullptr) {
+        return new Node(key);
+    }
 
-    updateHeight(node);
+    if (key < node->getKey()) {
+        depth++;
+        node->setLeft(insert(node->getLeft(), key, depth));
+    } else if (key > node->getKey()) {
+        depth++;
+        node->setRight(insert(node->getRight(), key, depth));
+    } else { // Duplicate keys not allowed
+        return node;
+    }
 
-    int balance = balanceFactor(node);
+    node->setHeight(1 + max(getHeight(node->getLeft()), getHeight(node->getRight())));
 
-    // 左左情况
-    if (balance > 1 && key < node->left->key)
+    int balance = getBalance(node);
+
+    // Left Left Case
+    if (balance > 1 && key < node->getLeft()->getKey())
         return rightRotate(node);
 
-    // 右右情况
-    if (balance < -1 && key > node->right->key)
+    // Right Right Case
+    if (balance < -1 && key > node->getRight()->getKey())
         return leftRotate(node);
 
-    // 左右情况
-    if (balance > 1 && key > node->left->key)
-    {
-        node->left = leftRotate(node->left);
+    // Left Right Case
+    if (balance > 1 && key > node->getLeft()->getKey()) {
+        node->setLeft(leftRotate(node->getLeft()));
         return rightRotate(node);
     }
 
-    // 右左情况
-    if (balance < -1 && key < node->right->key)
-    {
-        node->right = rightRotate(node->right);
+    // Right Left Case
+    if (balance < -1 && key < node->getRight()->getKey()) {
+        node->setRight(rightRotate(node->getRight()));
         return leftRotate(node);
     }
 
     return node;
 }
 
-bool AVLTree::findNode(AVLNode *node, int key)
-{
-    if (node == nullptr)
-        return false;
+Node* AVLTree::find(Node* node, int key, int& depth) const {
+    if (node == nullptr || node->getKey() == key) {
+        return node;
+    }
 
-    if (key == node->key)
-        return true;
-    else if (key < node->key)
-        return findNode(node->left, key);
-    else
-        return findNode(node->right, key);
+    if (key < node->getKey()) {
+        depth++;
+        return find(node->getLeft(), key, depth);
+    } else {
+        depth++;
+        return find(node->getRight(), key, depth);
+    }
 }
 
-int AVLTree::sizeNode(AVLNode *node)
-{
+void AVLTree::clear(Node* node) {
+    if (node != nullptr) {
+        clear(node->getLeft());
+        clear(node->getRight());
+        delete node;
+        node = nullptr;
+    }
+}
+
+int AVLTree::countNodes(Node* node) const {
     if (node == nullptr)
         return 0;
-    return 1 + sizeNode(node->left) + sizeNode(node->right);
+    return 1 + countNodes(node->getLeft()) + countNodes(node->getRight());
 }
 
-AVLTree::AVLTree() : root(nullptr) {}
-
-void AVLTree::clear()
-{
-    clearTree(root);
-    root = nullptr;
-}
-
-void AVLTree::clearTree(AVLNode *node)
-{
+int AVLTree::treeHeight(Node* node) const {
     if (node == nullptr)
-        return;
-
-    clearTree(node->left);
-    clearTree(node->right);
-    delete node;
+        return 0;
+    return 1 + max(treeHeight(node->getLeft()), treeHeight(node->getRight()));
 }
 
-AVLTree::~AVLTree()
-{
-    clear();
+// AVLTree 类的公有方法
+int AVLTree::insert(int key) {
+    int depth = 0;
+    root = insert(root, key, depth);
+    tree_size++;
+    return depth + getHeight(root);
 }
 
-void AVLTree::insert(int key)
-{
-    root = insertNode(root, key);
+int AVLTree::find(int key) {
+    int depth = 0;
+    Node* foundNode = find(root, key, depth);
+    if (foundNode == nullptr) {
+        return 0; // Not found
+    }
+    return depth + getHeight(foundNode);
 }
 
-bool AVLTree::find(int key)
-{
-    return findNode(root, key);
+bool AVLTree::empty() const {
+    return (root == nullptr);
 }
 
-int AVLTree::size()
-{
-    return sizeNode(root);
+int AVLTree::size() const {
+    return tree_size;
 }
 
-bool AVLTree::empty()
-{
-    return emptyNode(root);
-}
-
-bool AVLTree::emptyNode(AVLNode *node)
-{
-    return node == nullptr;
+int AVLTree::height() const {
+    return (root == nullptr) ? -1 : treeHeight(root);
 }
