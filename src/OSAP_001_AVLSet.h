@@ -1,5 +1,9 @@
-#ifndef OSAPAVLSET_H
+﻿#ifndef OSAPAVLSET_H
 #define OSAPAVLSET_H
+#include<iostream>
+
+using namespace std;
+
 class Node {
 public:
     Node(int val);
@@ -41,6 +45,12 @@ public:
     // 트리의 높이를 가져옵니다
     int height() const;
 
+    // 주어진 키의 조상 경로 반환
+    string ancestor(int key);
+
+    // 주어진 키의 순위 반환
+    int rank(int key);
+
 private:
     Node* root;
     int tree_size;
@@ -55,6 +65,9 @@ private:
     void clear(Node* node);
     int countNodes(Node* node) const;
     int treeHeight(Node* node) const;
+
+    string intToString(int value);// 정수를 문자열로 변환
+    int countNodes(Node* node) const;// 서브트리의 총 노드 수 계산
 };
 
 

@@ -1,6 +1,9 @@
-#include "OSAP_001_AVLSet.h"
+﻿#include "OSAP_001_AVLSet.h"
 #include <algorithm>
 #include <iostream>
+#include<sstream>
+
+using namespace std;
 
 // Node 클래스 생성자 및 소멸자
 Node::Node(int val) : key(val), left(nullptr), right(nullptr), height(1) {}
@@ -106,10 +109,12 @@ Node* AVLTree::insert(Node* node, int key, int& depth) {
     if (key < node->getKey()) {
         depth++;
         node->setLeft(insert(node->getLeft(), key, depth));
-    } else if (key > node->getKey()) {
+    }
+    else if (key > node->getKey()) {
         depth++;
         node->setRight(insert(node->getRight(), key, depth));
-    } else { // Duplicate keys not allowed
+    }
+    else { // Duplicate keys not allowed
         return node;
     }
 
@@ -149,7 +154,8 @@ Node* AVLTree::find(Node* node, int key, int& depth) const {
     if (key < node->getKey()) {
         depth++;
         return find(node->getLeft(), key, depth);
-    } else {
+    }
+    else {
         depth++;
         return find(node->getRight(), key, depth);
     }
@@ -207,3 +213,62 @@ int AVLTree::size() const {
 int AVLTree::height() const {
     return (root == nullptr) ? -1 : treeHeight(root);
 }
+
+string AVLTree::intToString(int value) {
+    ostringstream oss;
+    oss << value;
+    return oss.str();
+}
+
+string AVLTree::ancestor(int key) {
+    Node* node = root;
+    int depth = 0;
+    int sum = 0;
+    std::ostringstream result;
+
+    while (node != nullptr) {
+        sum += node->getKey(); 
+        result << node->getKey() << " "; 
+
+        if (key == node->getKey()) {
+            return intToString(depth + getHeight(node)) + " " + result.str();
+        }
+
+        depth++;
+        if (key < node->getKey()) {
+            node = node->getLeft(); 
+        }
+        else {
+            node = node->getRight(); 
+        }
+    }
+    return "0"; 
+}
+
+int AVLTree::rank(int key) {
+    Node* node = root;
+    int rank = 0;
+
+    while (node != nullptr) {
+        if (key < node->getKey()) {
+            node = node->getLeft(); 
+        }
+        else {
+            rank += (node->getLeft() ? countNodes(node->getLeft()) : 0) + 1;
+            if (key == node->getKey()) {
+                return rank; 
+            }
+            node = node->getRight(); 
+        }
+    }
+
+    return 0; 
+}
+
+int AVLTree::countNodes(Node* node) const {
+    if (node == nullptr) {
+        return 0;
+    }
+    return 1 + countNodes(node->getLeft()) + countNodes(node->getRight());
+}
+
