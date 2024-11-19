@@ -1,3 +1,6 @@
+// author: CHEN XUYAN
+// date: 2024-11-19
+
 #include "OSAP_001_AVLSet.h"
 #include <iostream>
 
@@ -17,7 +20,7 @@ int main()
             std::cin >> command;
             if (command == "Height")
             {
-                std::cout  << avlTree.height() << std::endl;
+                std::cout << avlTree.height() << std::endl;
             }
             else if (command == "Empty")
             {
@@ -27,10 +30,8 @@ int main()
             {
                 int value;
                 std::cin >> value;
-                avlTree.insert(value);
-                std::cout << 0 << std::endl;
+                std::cout << avlTree.insert(value)<< std::endl;
             }
-
             else if (command == "Size")
             {
                 std::cout << avlTree.size() << std::endl;
@@ -39,17 +40,23 @@ int main()
             {
                 int value;
                 std::cin >> value;
-                std::cout << (avlTree.find(value) ? 1 : 0) << std::endl;
+                std::cout << avlTree.find(value)<< std::endl;
             }
             else if (command == "Average")
             {
+                int value;
+                std::cin >> value;
+                std::cout << avlTree.average(value) << std::endl;
             }
             else if (command == "Ancestor")
             {
+                int value;
+                std::cin >> value;
+                avlTree.ancestor(value);
             }
             else
             {
-                // std::cout << "未知命令: " << command << std::endl;
+                std::cout << "error commond!" << command << std::endl;
             }
         }
     }
