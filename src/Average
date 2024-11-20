@@ -1,0 +1,37 @@
+#include "OSAP_001_AVLSet.h"
+#include <iostream>
+
+int AvlSet::Average(int x) {
+  // key 값이 x인 노드 탐색
+  Node *current = root_;
+  while (x != current->key) {
+    if (x < current->key) {
+      current = current->left;
+    } else {
+      current = current->right;
+    }
+  }
+
+  //해당 노드에 자식 노드가 없을 때 평균값
+  if (GetHeight(current) == 0) {
+    return current->key;
+  }
+  /*해당 노드를 루트로 하는 부분 트리의 가장 좌측 노드와
+  가장 좌측 노드의 값의 평균을 반환한다*/
+  else {
+    Node *min_node = current;
+    Node *max_node = current;
+
+    while (min_node->left != nullptr) {
+      min_node = min_node->left;
+    }
+    while (max_node->left != nullptr) {
+      max_node = max_node->right;
+    }
+
+    int min_value = min_node->key;
+    int max_value = max_node->key;
+
+    return (min_value + max_value) / 2;
+  }
+}
